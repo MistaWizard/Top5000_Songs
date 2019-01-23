@@ -74,7 +74,7 @@ function queryByArtist() {
             message: "What artist you want?"
         }
     ]).then(function(input) {
-        queryStr = "SELECT * FROM top5000 WHERE artist ?";
+        queryStr = "SELECT * FROM top5000 WHERE ?";
         connection.query(queryStr, {artist: input.artist}, function(err, data) {
             if (err) throw err;
             console.log("Songs: ");
