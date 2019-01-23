@@ -15,6 +15,6 @@ CREATE TABLE Top5000(
   raw_eur DECIMAL(10,4) NULL,
   raw_row DECIMAL(10,4) NULL,
   PRIMARY KEY (position)
-  );
+);
   
   select * from top5000;
