@@ -22,12 +22,18 @@ const connection = mysql.createConnection({
     database: "top_songsDB"
 });
 
+connection.connect(function(err) {
+    if (err) throw err;
+    console.log("connected as id " + connection.threadId + "\n");
+    promptUserInput();
+  });
+
 function promptUserInput() {
     inquirer.prompt([
         {
             type: "list",
             message: "What would you like to do?",
-            choices: ["By Artist", "By Song Count", "By Year Range", "By Song Name"],
+            choices: ["By Artist", "By Song Count", "By Year Range", "By Song Name", "Find artists with a top song and top album in the same year"],
             name: "filter"
         }
     ]).then(function (input) {
@@ -38,18 +44,24 @@ function promptUserInput() {
 			console.log('___By Artist___'.blue);
 			queryByArtist();
 
-		} else if (input.filter === 'By Song Count') {
+        }
+        else if (input.filter === 'By Song Count') {
 			console.log('___By Song Count___'.green);
 			queryBySongCount();
 
-		} else if (input.filter === 'By Year Range') {
+        }
+        else if (input.filter === 'By Year Range') {
 			console.log('___By Year Range___'.magenta);
 			queryByYearRange();
 
-		} else if(input.filter === 'By Song Name') {
+        }
+        else if(input.filter === 'By Song Name') {
 			console.log('___By Song Name___'.yellow);
-			queryBySongName();
-
+            queryBySongName();
+        }
+        else if(input.filter === "Find artists with a top song and top album in the same year") {
+            console.log('___By Artist Album___'.yellow);
+            songAndAlbumSearch();
         }
     })
 };
@@ -78,7 +90,8 @@ function queryByArtist() {
             }
 
             console.log("\n......................\n");
-            connection.end();
+            // connection.end();
+            promptUserInput();
         })
     })
 };
@@ -104,7 +117,8 @@ function queryBySongCount() {
             }
 
             console.log("\n......................\n");
-            connection.end();
+            // connection.end();
+            promptUserInput();
         })
     })
 };
@@ -138,7 +152,8 @@ function queryByYearRange() {
             }
 
             console.log("\n......................\n");
-            connection.end();
+            // connection.end();
+            promptUserInput();
         })
     })
 };
@@ -168,9 +183,43 @@ function queryBySongName() {
             }
 
             console.log("\n......................\n");
-            connection.end();
+            // connection.end();
+            promptUserInput();
         })
     })
 };
 
-promptUserInput();
+function songAndAlbumSearch() {
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "album",
+            message: "What artist would you like to search for?"
+        }
+    ]).then(function(input) {
+        queryStr = "SELECT top3000.year, top3000.album, top3000.position, top5000.song, top5000.artist ";
+        queryStr += "FROM top3000 INNER JOIN top5000 ON (top3000.artist = top5000.artist AND top3000.year ";
+        queryStr += "= top5000.year) WHERE (top3000.artist = ? AND top5000.artist = ?) ORDER BY top3000.year ";
+
+        connection.query(queryStr, [input.artist, input.artist], function(err, data) {
+            if (err) throw err;
+            console.log("Song Info: ");
+            console.log("......................\n");
+
+            for (let i = 0; i < data.length; i++) {
+                console.log([
+                    data[i].position,
+                    data[i].artist,
+                    data[i].song,
+                    data[i].year
+                ].join(" | ").magenta);
+            }
+
+            console.log("\n......................\n");
+            // connection.end();
+            promptUserInput();
+        });
+    })
+}
+
+// promptUserInput();
